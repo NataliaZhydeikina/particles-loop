@@ -3,6 +3,7 @@ import fragmentShader from "./shaders/fragment.frag";
 import vertexShader from "./shaders/vertex.vert";
 import { useMemo } from "react";
 import * as THREE from "three";
+import { OrbitControls } from "@react-three/drei";
 
 export default function Scene () {
 
@@ -33,5 +34,6 @@ export default function Scene () {
             <planeGeometry args={[1.0, 1.0]} />
             <shaderMaterial attach="material" {...data}/>
         </mesh>
+        <OrbitControls makeDefault />
     </Canvas>;
 }
