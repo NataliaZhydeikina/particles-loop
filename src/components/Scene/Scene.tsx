@@ -1,10 +1,11 @@
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useFrame } from "@react-three/fiber";
 import fragmentShader from "./shaders/fragment.frag";
 import vertexShader from "./shaders/vertex.vert";
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import * as THREE from "three";
-import { OrbitControls } from "@react-three/drei";
+import { OrbitControls, PerspectiveCamera, useFBO } from "@react-three/drei";
 import Ring from "../Ring";
+
 
 export default function Scene () {
 
@@ -30,7 +31,7 @@ export default function Scene () {
             <boxGeometry args={[1, 1, 1]} />
             <meshStandardMaterial color={'hotpink'} />
         </mesh> */}
-        <Ring />
+        <Ring multisample samples={8} stencilBuffer={false} format={THREE.RGBAFormat} />
         {/* <mesh>
             <planeGeometry args={[1.0, 1.0]} />
             <shaderMaterial attach="material" {...data}/>

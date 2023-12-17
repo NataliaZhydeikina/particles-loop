@@ -1,10 +1,9 @@
-import { useFrame, useThree } from "@react-three/fiber";
+import { useFrame, useThree, createPortal } from "@react-three/fiber";
 import fragmentShader from "./shaders/fragment.frag";
 import vertexShader from "./shaders/vertex.vert";
 import { useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { MeshTransmissionMaterial, PerspectiveCamera, TorusKnot, useAspect, useFBO } from "@react-three/drei";
-import { createPortal } from "react-dom";
 
 // function InnerScene(){
 //     // const data = useMemo(
@@ -62,69 +61,50 @@ import { createPortal } from "react-dom";
 //     </>;
 // }
 
-function Boxx(props) {
-    const mesh = useRef();
-    const [hovered, setHover] = useState(false);
-    const [active, setActive] = useState(false);
-    useFrame((state, delta) => {
-      mesh.current.rotation.x += delta;
-    });
-  
-    return (
-      <group>
-        <mesh
-          {...props}
-          ref={mesh}
-          scale={active ? 1.5 : 1}
-          onClick={(event) => {
-            setActive(!active);
-          }}
-          onPointerOver={(event) => {
-            setHover(true);
-          }}
-          onPointerOut={(event) => setHover(false)}
-        >
-          <boxGeometry args={[1, 1, 1]} />
-          <meshStandardMaterial color={hovered ? "hotpink" : "orange"} />
-        </mesh>
-      </group>
-    );
-  }
-  function Scene2() {
-    return (
-      <>
-        <ambientLight />
-        <pointLight position={[10, 10, 10]} />
-        <group>
-          <Boxx position={[-1.2, 0, 0]} />
-          <Boxx position={[1.2, 0, 0]} />
-        </group>
-      </>
-    );
-  }
-export default function Ring() {
-    const fboTexture = useFBO();
-    const size = useThree((state) => state.size);
-    const scale = useAspect(size.width, size.height, 1);
-    const [offScreenScene] = useState(() => new THREE.Scene());
-    const cameraRef = useRef(null);
-  
-    useFrame((state) => {
-      state.gl.setRenderTarget(fboTexture);
-      state.gl.render(state.scene, state.camera);
-      state.gl.setRenderTarget(null);
-    });
-  
-    return (
-      <>
-    <mesh>
-        <torusGeometry args={[10, 3, 32, 256]}/>
-      <MeshTransmissionMaterial buffer={fboTexture.texture} distortionScale={0} temporalDistortion={0} />
+function TextureScene() {
+  const mesh = useRef()
+  useFrame(() => {
+    mesh.current.rotation.x = mesh.current.rotation.y = mesh.current.rotation.z += 0.01
+  })
+  return (
+    <mesh ref={mesh}>
+      <boxGeometry />
+      <meshNormalMaterial />
     </mesh>
-    <mesh>
-        <sphereGeometry args={[1, 16, 16]} />
-      <MeshTransmissionMaterial buffer={fboTexture.texture} distortionScale={0} temporalDistortion={0} />
-    </mesh>
-      </>
-    );
-  }
+  )
+}
+interface Props {
+  multisample: true;
+  samples: number; 
+  stencilBuffer: boolean;
+   format: typeof THREE.RGBAFormat
+}
+
+const Ring = ({props}: any) => {
+  const target = useFBO(props)
+  const cam = useRef()
+  const scene = useMemo(() => {
+    const scene = new THREE.Scene()
+    scene.background = new THREE.Color()
+    return scene
+  }, [])
+
+  useFrame((state) => {
+    cam.current.position.z = 5 + Math.sin(state.clock.getElapsedTime() * 1.5) * 2
+    state.gl.setRenderTarget(target)
+    state.gl.render(scene, cam.current)
+    state.gl.setRenderTarget(null)
+  })
+
+  return (
+    <>
+      <PerspectiveCamera ref={cam} position={[0, 0, 3]} />
+      {createPortal(<TextureScene />, scene)}
+      <mesh>
+        <planeGeometry args={[2, 2]} />
+        <meshBasicMaterial map={target.texture} />
+      </mesh>
+    </>
+  )
+}
+export default Ring;
