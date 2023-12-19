@@ -3,7 +3,7 @@ import fragmentShader from "./shaders/fragment.frag";
 import vertexShader from "./shaders/vertex.vert";
 import { useMemo, useRef, useState } from "react";
 import * as THREE from "three";
-import { MeshTransmissionMaterial, PerspectiveCamera, TorusKnot, useAspect, useFBO } from "@react-three/drei";
+import { MeshTransmissionMaterial, PerspectiveCamera, TorusKnot, useAspect, useFBO, useHelper } from "@react-three/drei";
 
 // function InnerScene(){
 //     // const data = useMemo(
@@ -96,14 +96,23 @@ const Ring = ({props}: any) => {
     state.gl.setRenderTarget(null)
   })
 
+  const light = useRef()
+  useHelper(light, THREE.SpotLightHelper, 'cyan')
+
   return (
     <>
       <PerspectiveCamera ref={cam} position={[0, 0, 3]} />
-      {createPortal(<TextureScene />, scene)}
+      {/* {createPortal(<TextureScene />, scene)}
       <mesh>
         <planeGeometry args={[2, 2]} />
         <meshBasicMaterial map={target.texture} />
+      </mesh> */}
+      <mesh>
+        <boxGeometry />
+        <meshStandardMaterial color={0x00ff00} />
       </mesh>
+      <spotLight position={[ 5,5,0]} visible angle={0.6} intensity={150} penumbra={0.5} color={[1,.24,.7]} ref={light} />
+     
     </>
   )
 }
